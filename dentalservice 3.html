@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Aurora Flow - Dental Report</title>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* --- Interactive Aurora Flow Design System --- */
+
+        /* Base Styles & Variables */
+        :root {
+            --font-primary: 'Inter', sans-serif;
+            --text-color: rgba(240, 240, 255, 0.95); /* Slightly off-white for better viewing on dark */
+            --text-color-muted: rgba(200, 200, 220, 0.7);
+            --heading-color: #ffffff;
+            --accent-glow: rgba(0, 247, 255, 0.7); /* Teal/Cyan glow */
+
+            /* Aurora Colors */
+            --aurora-1: #0d0b33; /* Deep Blue/Purple */
+            --aurora-2: #1a1452;
+            --aurora-3: #482a7a; /* Purple */
+            --aurora-4: #005a7a; /* Teal */
+            --aurora-5: #6B73FF; /* Bright Blue */
+            --aurora-6: #ff4da6; /* Pinkish hint */
+
+            /* Glassmorphism */
+            --glass-bg: rgba(35, 35, 60, 0.1); /* Darker base for glass */
+            --glass-border: rgba(255, 255, 255, 0.15);
+            --glass-blur: 10px;
+            --glass-saturate: 150%;
+
+            /* Spacing */
+            --space-xs: 4px;
+            --space-sm: 8px;
+            --space-md: 16px;
+            --space-lg: 24px;
+            --space-xl: 32px;
+            --space-xxl: 48px;
+
+            /* Transitions */
+            --transition-fast: 0.2s ease-out;
+            --transition-med: 0.4s ease-out;
+            --transition-slow: 0.6s ease-out;
+
+            /* Shadows */
+            --shadow-soft: 0 8px 32px 0 rgba(13, 11, 51, 0.2); /* Adjusted for darker theme */
+            --shadow-glow: 0 0 20px 0 rgba(0, 247, 255, 0.3); /* Teal glow */
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: var(--font-primary);
+            line-height: 1.7;
+            background-color: var(--aurora-1); /* Base dark color */
+            color: var(--text-color);
+            overflow-x: hidden; /* Prevent horizontal scroll from background */
+            position: relative; /* Needed for pseudo-elements */
+            min-height: 100vh;
+        }
+
+        /* Aurora Background Effect */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed; /* Fixed to viewport */
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -1; /* Behind all content */
+            background-attachment: fixed; /* Important for smooth animation */
+            opacity: 0.6; /* Control intensity */
+            pointer-events: none; /* Allow clicks through */
+        }
+
+        body::before {
+            background:
+                radial-gradient(circle at 10% 10%, var(--aurora-5) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, var(--aurora-4) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, var(--aurora-3) 0%, transparent 45%);
+            background-size: 200% 200%; /* Make gradients large */
+            animation: aurora-flow 45s linear infinite alternate;
+        }
+
+        body::after {
+            background:
+                radial-gradient(circle at 80% 20%, var(--aurora-6) 0%, transparent 35%),
+                radial-gradient(circle at 20% 90%, var(--aurora-4) 0%, transparent 40%),
+                radial-gradient(circle at 60% 40%, var(--aurora-2) 0%, transparent 50%);
+             background-size: 250% 250%;
+            animation: aurora-flow 60s linear infinite; /* Different speed/timing */
+        }
+
+        @keyframes aurora-flow {
+            0% { background-position: 0% 0%; }
+            50% { background-position: 100% 100%; }
+            100% { background-position: 0% 0%; }
+        }
+
+        /* Container */
+        .container {
+            max-width: 1100px; /* Increased width */
+            margin: 0 auto; /* Center container */
+            padding: var(--space-lg) var(--space-md); /* Responsive padding */
+        }
+
+        /* --- Header --- */
+        header {
+            padding: var(--space-md) var(--space-lg);
+            margin-bottom: var(--space-xxl);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            transition: background-color var(--transition-med), box-shadow var(--transition-med);
+            border-radius: 0 0 var(--space-md) var(--space-md); /* Rounded bottom corners */
+
+            /* Glassmorphism */
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+            -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate)); /* Safari */
+            border-bottom: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+
+            /* Layout */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+
+            /* Initial Animation */
+            opacity: 0;
+            transform: translateY(-20px);
+            animation: fadeInHeader 1s ease-out 0.2s forwards;
+        }
+
+        /* Fallback for browsers not supporting backdrop-filter */
+        @supports not (backdrop-filter: blur(10px)) {
+            header {
+                background-color: rgba(25, 20, 82, 0.85); /* Solid fallback */
+            }
+        }
+
+        /* Style change on scroll */
+        header.scrolled {
+           background-color: rgba(35, 35, 60, 0.3); /* Slightly more opaque */
+           box-shadow: 0 12px 40px 0 rgba(13, 11, 51, 0.3); /* Stronger shadow */
+        }
+
+        @keyframes fadeInHeader {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.5em;
+            color: var(--heading-color);
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        .logo svg {
+            width: 30px;
+            height: 30px;
+            margin-right: var(--space-sm);
+            fill: var(--accent-glow);
+        }
+
+        nav ul {
+            list-style: none;
+            display: flex;
+        }
+        nav li {
+            margin-left: var(--space-lg);
+        }
+        nav a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 600;
+            padding: var(--space-sm) 0;
+            position: relative;
+            transition: color var(--transition-fast);
+        }
+        nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--accent-glow);
+            transition: width var(--transition-med);
+        }
+        nav a:hover {
+            color: var(--heading-color);
+        }
+        nav a:hover::after {
+            width: 100%;
+        }
+
+
+        /* --- Typography & Text Styles --- */
+        h1, h2, h3 {
+            color: var(--heading-color);
+            font-weight: 700;
+            margin-bottom: var(--space-md);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2); /* Help readability */
+        }
+        h1 { font-size: 2.8em; }
+        h2 { font-size: 2em; margin-top: var(--space-xl); font-weight: 600; border-bottom: 1px solid var(--glass-border); padding-bottom: var(--space-sm); }
+        h3 { font-size: 1.4em; margin-top: var(--space-lg); color: var(--accent-glow); font-weight: 600; }
+
+        p {
+            margin-bottom: var(--space-md);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3); /* Help readability */
+        }
+        strong { font-weight: 600; color: var(--heading-color); }
+        a { color: var(--accent-glow); text-decoration: none; transition: color var(--transition-fast); }
+        a:hover { color: lighten(var(--accent-glow), 10%); }
+
+        ul, ol {
+            margin-bottom: var(--space-md);
+            padding-left: var(--space-lg);
+        }
+        li {
+            margin-bottom: var(--space-sm);
+        }
+
+        /* --- Sections/Content Blocks --- */
+        .content-section {
+            background-color: rgba(255, 255, 255, 0.03); /* Very subtle background */
+            padding: var(--space-xl);
+            margin-bottom: var(--space-xxl);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: transform var(--transition-med), box-shadow var(--transition-med), border-color var(--transition-med);
+            position: relative; /* For potential ::before/::after effects */
+        }
+
+        /* Section Hover Pop */
+        .content-section:hover {
+            transform: perspective(1000px) rotateX(1.5deg) translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+
+        .objective {
+            font-style: italic;
+            color: var(--text-color-muted);
+            background-color: rgba(0, 247, 255, 0.05); /* Teal tint */
+            padding: var(--space-md);
+            border-left: 4px solid var(--accent-glow);
+            margin: var(--space-lg) 0;
+            border-radius: 4px;
+        }
+
+        .key-takeaway {
+            font-weight: 600;
+            background-color: rgba(255, 77, 166, 0.1); /* Pinkish tint */
+            border: 1px solid rgba(255, 77, 166, 0.3);
+            padding: var(--space-md);
+            margin-top: var(--space-lg);
+            border-radius: 4px;
+            color: #ff8dcb; /* Lighter pink */
+        }
+
+        /* --- Scroll Reveal Animation --- */
+        .scroll-reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .scroll-reveal.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        /* Stagger children elements */
+        .scroll-reveal h2, .scroll-reveal h3 { transition-delay: 0.1s; }
+        .scroll-reveal p, .scroll-reveal ul, .scroll-reveal ol, .scroll-reveal div:not(.chart-container) { transition-delay: 0.2s; }
+        .scroll-reveal .chart-container, .scroll-reveal .btn-container { transition-delay: 0.3s; }
+
+
+        /* --- Buttons --- */
+         .btn-container {
+             text-align: center;
+             margin-top: var(--space-lg);
+         }
+        .styled-button {
+            display: inline-block;
+            padding: 12px 28px; /* Slightly adjusted */
+            border: none;
+            border-radius: 8px; /* Less rounded */
+            background: linear-gradient(45deg, var(--aurora-5), var(--aurora-4)); /* Blue/Teal gradient */
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast), background var(--transition-med);
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(0, 200, 220, 0.2); /* Softer glow */
+            margin: var(--space-sm);
+        }
+
+        .styled-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 25px var(--shadow-glow); /* Use glow variable */
+            background: linear-gradient(45deg, lighten(var(--aurora-5), 5%), lighten(var(--aurora-4), 5%)); /* Brighter gradient */
+        }
+
+         .styled-button:active {
+            transform: scale(0.98);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2), 0 2px 5px rgba(0, 200, 220, 0.1); /* Inset + reduced outer */
+         }
+
+        /* --- Chart Container --- */
+        .chart-container {
+            position: relative;
+            margin: var(--space-xl) auto;
+            width: 100%;
+            max-width: 700px; /* Limit chart width */
+            padding: var(--space-lg);
+            background-color: rgba(255, 255, 255, 0.05); /* Match section bg */
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+         .chart-container canvas {
+            max-width: 100%;
+            height: auto !important; /* Override inline style if necessary, maintain aspect ratio */
+            min-height: 300px; /* Ensure minimum height */
+         }
+         /* Chart.js Tooltip Customization */
+        .chartjs-tooltip {
+             background: rgba(15, 15, 30, 0.85) !important;
+             border-radius: 4px !important;
+             color: white !important;
+             border: 1px solid var(--glass-border) !important;
+             padding: var(--space-sm) !important;
+        }
+
+
+        /* --- Interactive 3D Element --- */
+        .interactive-3d-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 250px; /* Give it space */
+            margin: var(--space-xl) 0;
+            perspective: 1000px; /* Enable 3D space for children */
+        }
+
+        .interactive-3d-object {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s linear; /* Fast transition for mouse follow */
+            /* Initial rotation */
+             transform: rotateX(20deg) rotateY(30deg);
+        }
+
+        .interactive-3d-object .face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border: 1px solid var(--accent-glow);
+            background: rgba(0, 247, 255, 0.1);
+            color: white;
+            font-size: 0.8em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.7;
+        }
+
+        /* Position the faces of the cube */
+        .face.front  { transform: translateZ(50px); }
+        .face.back   { transform: rotateY(180deg) translateZ(50px); }
+        .face.right  { transform: rotateY(90deg) translateZ(50px); }
+        .face.left   { transform: rotateY(-90deg) translateZ(50px); }
+        .face.top    { transform: rotateX(90deg) translateZ(50px); }
+        .face.bottom { transform: rotateX(-90deg) translateZ(50px); }
+
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            margin-top: var(--space-xxl);
+            padding: var(--space-lg);
+            color: var(--text-color-muted);
+            font-size: 0.9em;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 1024px) {
+             h1 { font-size: 2.4em; }
+             h2 { font-size: 1.8em; }
+             .container { max-width: 90%; } /* Use percentage */
+        }
+
+        @media (max-width: 768px) {
+            :root {
+                --space-lg: 20px;
+                --space-xl: 28px;
+                --space-xxl: 40px;
+            }
+            h1 { font-size: 2em; }
+            h2 { font-size: 1.6em; }
+            h3 { font-size: 1.3em; }
+
+            body { line-height: 1.6; }
+
+            header {
+                padding: var(--space-sm) var(--space-md);
+                 /* Optional: Simplify header - maybe hide nav behind hamburger */
+            }
+            .logo { font-size: 1.3em; }
+            nav ul { /* Simple hide for now, needs JS for hamburger */
+                 /* display: none; */
+                 /* OR make links smaller/wrap */
+                 margin-left: var(--space-md);
+             }
+             nav li { margin-left: var(--space-md); }
+             nav a { font-size: 0.9em;}
+
+
+            .content-section { padding: var(--space-lg); margin-bottom: var(--space-xl); }
+
+             .chart-container canvas { min-height: 250px; }
+
+             .interactive-3d-container { min-height: 200px; }
+             .interactive-3d-object { width: 80px; height: 80px; }
+             .interactive-3d-object .face { width: 80px; height: 80px; font-size: 0.7em; }
+             .face.front  { transform: translateZ(40px); }
+             .face.back   { transform: rotateY(180deg) translateZ(40px); }
+             .face.right  { transform: rotateY(90deg) translateZ(40px); }
+             .face.left   { transform: rotateY(-90deg) translateZ(40px); }
+             .face.top    { transform: rotateX(90deg) translateZ(40px); }
+             .face.bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+             /* Disable section hover pop on touch devices if desired */
+             .content-section:hover {
+                 /* transform: none; */
+                 /* box-shadow: none; */
+             }
+        }
+
+        @media (max-width: 480px) {
+             :root {
+                --space-md: 12px;
+                --space-lg: 16px;
+                --space-xl: 24px;
+                --space-xxl: 32px;
+             }
+            h1 { font-size: 1.8em; }
+            h2 { font-size: 1.4em; }
+            h3 { font-size: 1.2em; }
+
+            header { flex-direction: column; align-items: flex-start; padding-bottom: var(--space-sm); }
+            .logo { margin-bottom: var(--space-sm); }
+            nav ul { padding-top: var(--space-sm); }
+            nav li { margin-left: var(--space-md); }
+
+             .styled-button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+                width: 100%; /* Make buttons full width */
+                margin-left: 0;
+                margin-right: 0;
+             }
+             .btn-container { display: flex; flex-direction: column; gap: var(--space-sm); }
+
+
+             .chart-container canvas { min-height: 200px; }
+             /* Consider hiding 3D object on very small screens */
+             /* .interactive-3d-container { display: none; } */
+        }
+
+        /* Accessibility: Reduce motion */
+        @media (prefers-reduced-motion: reduce) {
+          *, *::before, *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+            scroll-behavior: auto !important;
+            transition-delay: 0ms !important;
+          }
+          /* Keep fade-in for structure, but remove slide */
+           .scroll-reveal { transform: translateY(0); }
+           /* Keep header fade, remove slide */
+           @keyframes fadeInHeader {
+             from { opacity: 0; } to { opacity: 1; }
+           }
+           header { transform: translateY(0); animation: fadeInHeader 0.01ms forwards; }
+           /* Disable hover transforms */
+           .content-section:hover { transform: none; }
+           .styled-button:hover { transform: scale(1); }
+           .styled-button:active { transform: scale(1); }
+           /* Disable JS-driven transforms */
+           /* Need JS check for prefers-reduced-motion for header/3d object tilt */
+           body::before, body::after { animation: none; } /* Static background */
+        }
+
+    </style>
+</head>
+<body>
+
+    <header id="main-header">
+        <a href="#" class="logo">
+            <!-- Inline SVG Placeholder Logo -->
+            <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50,5 L95,27.5 L95,72.5 L50,95 L5,72.5 L5,27.5 Z M50,20 L80,37.5 L80,62.5 L50,80 L20,62.5 L20,37.5 Z" stroke="currentColor" stroke-width="5" fill="none"/>
+                <circle cx="50" cy="50" r="10" fill="currentColor"/>
+            </svg>
+            <span>Aurora Dental</span>
+        </a>
+        <nav>
+            <ul>
+                <li><a href="#introduction">Intro</a></li>
+                <li><a href="#task1">Trends</a></li>
+                <li><a href="#task2">Drivers</a></li>
+                <li><a href="#recommendations">Next Steps</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div class="container">
+
+        <section id="introduction" class="content-section scroll-reveal">
+            <h1>Dental Claims Analysis</h1>
+            <p>An interactive exploration of cost trends and network insights based on SKYGEN's sample data, presented with a modern, dynamic interface.</p>
+            <p><strong>Executive Summary:</strong> Analysis reveals a year-over-year increase in PMPM costs (2023 vs. 2024), primarily driven by Restorative, Preventive, and Diagnostic service categories. A methodology for identifying outlier providers based on specialty-specific cost-per-patient benchmarks is also presented.</p>
+
+             <!-- Interactive 3D Element Container -->
+             <div class="interactive-3d-container">
+                 <div class="interactive-3d-object">
+                     <div class="face front"></div>
+                     <div class="face back"></div>
+                     <div class="face left"></div>
+                     <div class="face right"></div>
+                     <div class="face top"></div>
+                     <div class="face bottom"></div>
+                 </div>
+             </div>
+
+            <div class="btn-container">
+                <a href="#task1" class="styled-button">Explore Cost Trends</a>
+                <a href="#recommendations" class="styled-button">View Recommendations</a>
+            </div>
+        </section>
+
+        <section id="task1" class="content-section scroll-reveal">
+            <h2>Task 1: Overall Monthly Cost Trends</h2>
+            <div class="objective">
+                <strong>Objective:</strong> Visualize the month-over-month cost per member (PMPM) from Jan 2023 to Dec 2024.
+            </div>
+            <h3>Findings: PMPM Growth</h3>
+            <p>The chart below illustrates a clear upward trend in average monthly costs per member.</p>
+            <ul>
+                <li>2024 PMPM (Avg: $19.17) significantly higher than 2023 (Avg: $15.93).</li>
+                <li>Seasonal dips observed around year-end, but the overall trajectory is increasing.</li>
+            </ul>
+            <h3>Visualization: Monthly PMPM Trend</h3>
+            <div class="chart-container">
+                <canvas id="pmpmTrendChart"></canvas>
+            </div>
+             <p class="key-takeaway"><strong>Takeaway:</strong> Year-over-year cost escalation requires deeper investigation into contributing factors.</p>
+        </section>
+
+        <section id="task2" class="content-section scroll-reveal">
+            <h2>Task 2: Identifying Cost Drivers</h2>
+            <div class="objective">
+                <strong>Objective:</strong> Analyze service-level data to pinpoint which categories contribute most to the observed PMPM increase.
+            </div>
+            <h3>Findings: Key Service Categories</h3>
+             <p>The rise in costs is predominantly linked to increases within core dental service areas:</p>
+            <ul>
+                <li><strong>Restorative Care:</strong> Largest contributor to the PMPM increase.</li>
+                <li><strong>Preventive Care:</strong> Second most significant impact.</li>
+                <li><strong>Diagnostic Services:</strong> Also a major factor in rising costs.</li>
+             </ul>
+             <p>This suggests changes in utilization frequency, service cost, or complexity within these common procedures.</p>
+            <h3>Visualization: PMPM Increase by Service Type (2023 vs 2024)</h3>
+             <div class="chart-container">
+                <canvas id="servicePMPMChart"></canvas>
+            </div>
+             <p class="key-takeaway"><strong>Takeaway:</strong> Focus cost management strategies on understanding and addressing trends within Restorative, Preventive, and Diagnostic services.</p>
+        </section>
+
+        <section id="task3" class="content-section scroll-reveal">
+            <h2>Task 3: Identifying High-Cost Providers</h2>
+            <div class="objective">
+                <strong>Objective:</strong> Develop a methodology to identify providers with significantly higher costs relative to their specialty peers.
+            </div>
+            <h3>Strategy: Specialty-Based Benchmarking</h3>
+            <p>To ensure fair comparisons, providers are evaluated against others within the same specialty:</p>
+            <ol>
+                <li>Calculate average cost per unique patient for each provider.</li>
+                <li>Group providers by specialty.</li>
+                <li>Determine the average cost per patient within each specialty group.</li>
+                <li>Flag providers significantly exceeding their specialty average, considering cost per service and service volume per patient.</li>
+            </ol>
+            <h3>Implications:</h3>
+            <p>This approach effectively identifies providers whose practice patterns differ markedly. These providers become candidates for further review to understand the underlying reasons (e.g., case mix complexity, efficiency).</p>
+             <p class="key-takeaway"><strong>Takeaway:</strong> Comparing providers within specialty groups allows for targeted network analysis and identification of potential optimization opportunities.</p>
+        </section>
+
+         <section id="recommendations" class="content-section scroll-reveal">
+            <h2>Conclusions & Recommendations</h2>
+            <p>The analysis confirms rising PMPM costs driven by core services and provides a method for identifying outlier providers.</p>
+            <p><strong>Recommended Next Steps:</strong></p>
+             <ul>
+                <li><strong>Deep Dive Analysis:</strong> Investigate price vs. utilization drivers for key service categories.</li>
+                <li><strong>Provider Outreach:</strong> Engage with high-cost providers (relative to specialty) for dialogue on practice patterns.</li>
+                <li><strong>Utilization Monitoring:</strong> Track services per patient, especially for flagged providers.</li>
+                <li><strong>Benchmark Refinement:</strong> Continuously update specialty averages, potentially incorporating geographic or risk adjustments.</li>
+                <li><strong>High-Cost Procedure Review:</strong> Periodically assess costs for expensive, lower-volume procedures.</li>
+            </ul>
+             <div class="btn-container">
+                <a href="#" class="styled-button">Download Report PDF (Simulated)</a>
+             </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 Aurora Dental Analysis Demo. Built with Interactive Aurora Flow design principles.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Reduced Motion Check ---
+        const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        let reduceMotion = motionQuery.matches;
+        motionQuery.addEventListener('change', () => {
+            reduceMotion = motionQuery.matches;
+        });
+
+
+        // --- Scroll Reveal Animation ---
+        const scrollObserverOptions = {
+            root: null,
+            rootMargin: '0px',
+            threshold: 0.1
+        };
+
+        const scrollObserverCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                // Check if reduceMotion is false before adding class
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    // Apply active class to children for staggering if needed
+                    entry.target.querySelectorAll('.scroll-reveal > *').forEach((child, index) => {
+                       // Check reduceMotion again if child has its own transition
+                       if (!reduceMotion) {
+                           // This basic example doesn't need child staggering adjustment,
+                           // but keeping the structure if more complex reveals are added.
+                       }
+                    });
+                    observer.unobserve(entry.target);
+                }
+            });
+        };
+
+        const scrollObserver = new IntersectionObserver(scrollObserverCallback, scrollObserverOptions);
+        document.querySelectorAll('.scroll-reveal').forEach(section => {
+             // Observe only if motion is preferred
+             if (!reduceMotion) {
+                 scrollObserver.observe(section);
+             } else {
+                 // If motion is reduced, make elements visible immediately
+                 section.classList.add('active');
+             }
+        });
+
+        // --- Header Scroll Effect ---
+         const header = document.getElementById('main-header');
+         window.addEventListener('scroll', () => {
+             if (window.scrollY > 50) {
+                 header.classList.add('scrolled');
+             } else {
+                 header.classList.remove('scrolled');
+             }
+         }, { passive: true }); // Use passive listener for scroll performance
+
+
+        // --- Header 3D Tilt on Hover (Optional Bonus) ---
+        if (header && !reduceMotion) { // Check if motion is preferred
+            header.addEventListener('mousemove', (e) => {
+                const rect = header.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2;
+                const y = e.clientY - rect.top - rect.height / 2;
+
+                // Adjust sensitivity
+                const rotateY = (x / rect.width) * 10; // Max 5deg rotation
+                const rotateX = -(y / rect.height) * 10; // Max 5deg rotation
+
+                header.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(0)`; // Keep original translateY
+                 header.style.transition = 'transform 0.1s linear'; // Faster transition during hover
+            });
+
+            header.addEventListener('mouseleave', () => {
+                 header.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0)';
+                 header.style.transition = 'transform 0.4s ease-out'; // Slower transition back
+            });
+        } else if (header) {
+            // Ensure no residual transform if reduced motion is on
+             header.style.transform = 'translateY(0)';
+        }
+
+
+        // --- Interactive 3D Object Mouse Follow ---
+         const interactiveObject = document.querySelector('.interactive-3d-object');
+         if (interactiveObject && !reduceMotion) { // Check if motion is preferred
+             const container = document.querySelector('.interactive-3d-container') || window; // Use container or window
+             let rafId = null; // RequestAnimationFrame ID
+
+            const handleMouseMove = (e) => {
+                 // Cancel previous frame if mouse moves quickly
+                 if (rafId) {
+                     cancelAnimationFrame(rafId);
+                 }
+
+                 rafId = requestAnimationFrame(() => {
+                     const rect = container === window ? { top: 0, left: 0, width: window.innerWidth, height: window.innerHeight } : container.getBoundingClientRect();
+                     // Center calculation depends on whether we track vs window or container
+                     const mouseX = e.clientX - rect.left;
+                     const mouseY = e.clientY - rect.top;
+
+                     const centerX = rect.width / 2;
+                     const centerY = rect.height / 2;
+
+                     // Calculate rotation based on mouse position relative to center
+                     // Increase multiplier for more sensitivity
+                     const rotateY = (mouseX - centerX) * 0.1;
+                     const rotateX = -(mouseY - centerY) * 0.1;
+
+                     interactiveObject.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+                 });
+             };
+
+            container.addEventListener('mousemove', handleMouseMove);
+
+             // Optional: Reset on mouse leave
+             container.addEventListener('mouseleave', () => {
+                  if (rafId) {
+                     cancelAnimationFrame(rafId);
+                 }
+                 interactiveObject.style.transform = 'perspective(1000px) rotateX(20deg) rotateY(30deg)'; // Reset to initial or neutral
+             });
+
+         } else if (interactiveObject) {
+             // Ensure default transform if reduced motion
+             interactiveObject.style.transform = 'rotateX(20deg) rotateY(30deg)';
+         }
+
+
+        // --- Chart Common Options ---
+        const chartDefaultFont = { size: 11, family: "'Inter', sans-serif" };
+        const chartGridColor = 'rgba(255, 255, 255, 0.1)';
+        const chartTickColor = 'rgba(200, 200, 220, 0.7)';
+
+        const chartTooltipOptions = {
+             enabled: true,
+             external: function(context) { // Custom HTML Tooltip for better styling control (Optional)
+                // Tooltip Element
+                 let tooltipEl = document.getElementById('chartjs-tooltip');
+
+                // Create element on first render
+                if (!tooltipEl) {
+                    tooltipEl = document.createElement('div');
+                    tooltipEl.id = 'chartjs-tooltip';
+                    tooltipEl.className = 'chartjs-tooltip'; // Add class for styling
+                    tooltipEl.innerHTML = '<table></table>';
+                    document.body.appendChild(tooltipEl);
+                }
+
+                // Hide if no tooltip
+                const tooltipModel = context.tooltip;
+                if (tooltipModel.opacity === 0) {
+                    tooltipEl.style.opacity = 0;
+                    return;
+                }
+
+                // Set Text
+                if (tooltipModel.body) {
+                    const titleLines = tooltipModel.title || [];
+                    const bodyLines = tooltipModel.body.map(b => b.lines);
+
+                    let innerHtml = '<thead>';
+
+                    titleLines.forEach(function(title) {
+                        innerHtml += '<tr><th>' + title + '</th></tr>';
+                    });
+                    innerHtml += '</thead><tbody>';
+
+                    bodyLines.forEach(function(body, i) {
+                        const colors = tooltipModel.labelColors[i];
+                        let style = 'background:' + colors.backgroundColor;
+                        style += '; border-color:' + colors.borderColor;
+                        style += '; border-width: 2px';
+                        const span = '<span style="' + style + '; display: inline-block; width: 10px; height: 10px; margin-right: 5px; border-radius: 2px;"></span>';
+                        innerHtml += '<tr><td>' + span + body + '</td></tr>';
+                    });
+                    innerHtml += '</tbody>';
+
+                    let tableRoot = tooltipEl.querySelector('table');
+                    tableRoot.innerHTML = innerHtml;
+                }
+
+                const position = context.chart.canvas.getBoundingClientRect();
+                const bodyFont = Chart.helpers.toFont(tooltipModel.options.bodyFont);
+
+                // Display, position, and set styles for font
+                tooltipEl.style.opacity = 1;
+                tooltipEl.style.position = 'absolute';
+                tooltipEl.style.left = position.left + window.pageXOffset + tooltipModel.caretX + 'px';
+                tooltipEl.style.top = position.top + window.pageYOffset + tooltipModel.caretY + 'px';
+                tooltipEl.style.font = bodyFont.string;
+                tooltipEl.style.padding = tooltipModel.padding + 'px ' + tooltipModel.padding + 'px';
+                tooltipEl.style.pointerEvents = 'none';
+                tooltipEl.style.transition = 'opacity 0.1s ease-in-out'; // Smooth fade
+            },
+            // Standard Tooltip options (used by external tooltip or if external is disabled)
+             backgroundColor: 'rgba(15, 15, 30, 0.85)', // Dark, semi-transparent
+             titleColor: '#ffffff',
+             bodyColor: '#f0f0f0',
+             titleFont: { weight: 'bold', size: 13, family: "'Inter', sans-serif" },
+             bodyFont: { size: 12, family: "'Inter', sans-serif" },
+             padding: 10,
+             cornerRadius: 4,
+             displayColors: true, // Show color boxes
+             borderColor: 'rgba(255, 255, 255, 0.15)',
+             borderWidth: 1,
+        };
+
+
+        // --- Chart for Task 1: PMPM Trend ---
+        const ctxPMPM = document.getElementById('pmpmTrendChart')?.getContext('2d');
+         if (ctxPMPM) {
+            const pmpmMonths = [
+                "Jan 23", "Feb 23", "Mar 23", "Apr 23", "May 23", "Jun 23", "Jul 23", "Aug 23", "Sep 23", "Oct 23", "Nov 23", "Dec 23",
+                "Jan 24", "Feb 24", "Mar 24", "Apr 24", "May 24", "Jun 24", "Jul 24", "Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24"
+            ];
+            const pmpmValues = [
+                15.70, 15.02, 17.21, 15.00, 16.61, 15.76, 14.21, 17.53, 14.99, 17.47, 16.53, 15.08,
+                17.65, 17.60, 18.21, 19.30, 19.55, 18.24, 20.28, 21.35, 19.29, 22.01, 18.88, 17.70
+            ];
+
+             // Create gradient fill for line chart
+            const gradientPMPM = ctxPMPM.createLinearGradient(0, 0, 0, 300);
+            gradientPMPM.addColorStop(0, 'rgba(0, 247, 255, 0.4)'); // Teal/Cyan start
+            gradientPMPM.addColorStop(1, 'rgba(13, 11, 51, 0)'); // Fade to transparent/dark
+
+            new Chart(ctxPMPM, {
+                type: 'line',
+                data: {
+                    labels: pmpmMonths,
+                    datasets: [{
+                        label: 'PMPM ($)',
+                        data: pmpmValues,
+                        borderColor: 'rgba(0, 247, 255, 0.8)', // Bright teal line
+                        backgroundColor: gradientPMPM, // Use gradient
+                        tension: 0.4, // Smoother curve
+                        fill: true,
+                        pointBackgroundColor: 'rgba(0, 247, 255, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(0, 247, 255, 1)',
+                        pointRadius: 4,
+                        pointHoverRadius: 7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Allow custom height via container
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) { return '$' + value.toFixed(2); },
+                                font: chartDefaultFont,
+                                color: chartTickColor,
+                                padding: 10
+                            },
+                             grid: { color: chartGridColor, drawBorder: false }
+                        },
+                         x: {
+                            ticks: {
+                                 font: chartDefaultFont,
+                                 color: chartTickColor,
+                                 maxRotation: 45,
+                                 minRotation: 45,
+                                 padding: 10
+                            },
+                             grid: { display: false, drawBorder: false }
+                        }
+                    },
+                    plugins: {
+                         legend: { display: false },
+                         tooltip: chartTooltipOptions, // Use common tooltip options
+                         title: {
+                            display: true,
+                            text: 'Monthly Cost Per Member (PMPM)',
+                            font: { size: 16, weight: '600', family: "'Inter', sans-serif" },
+                            padding: { top: 5, bottom: 20 },
+                            color: '#ffffff'
+                         }
+                    },
+                     interaction: { mode: 'index', intersect: false },
+                }
+            });
+        }
+
+
+        // --- Chart for Task 2: Service Category PMPM Comparison ---
+        const ctxService = document.getElementById('servicePMPMChart')?.getContext('2d');
+         if (ctxService) {
+            const serviceCategories = [
+                'Restorative', 'Preventive', 'Diagnostic', 'Oral Surgery',
+                'Orthodontics', 'Adjunctive Gen.', 'Endodontics', 'Undefined'
+            ];
+            const servicePMPM2023 = [4.53, 2.59, 2.49, 1.63, 1.21, 0.68, 1.38, 0.38];
+            const servicePMPM2024 = [5.28, 3.24, 2.94, 1.98, 1.41, 0.83, 1.51, 0.51];
+
+            new Chart(ctxService, {
+                type: 'bar',
+                data: {
+                    labels: serviceCategories,
+                    datasets: [
+                        {
+                            label: '2023 Avg PMPM',
+                            data: servicePMPM2023,
+                            backgroundColor: 'rgba(107, 115, 255, 0.7)', // --aurora-5 tint (Blue)
+                            borderColor: 'rgba(107, 115, 255, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            borderSkipped: false,
+                        },
+                        {
+                            label: '2024 Avg PMPM',
+                            data: servicePMPM2024,
+                             backgroundColor: 'rgba(255, 77, 166, 0.7)', // --aurora-6 tint (Pink)
+                            borderColor: 'rgba(255, 77, 166, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            borderSkipped: false,
+                        }
+                    ]
+                },
+                options: {
+                     responsive: true,
+                     maintainAspectRatio: false, // Allow custom height via container
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return '$' + value.toFixed(2); },
+                                 font: chartDefaultFont,
+                                 color: chartTickColor,
+                                 padding: 10
+                            },
+                             grid: { color: chartGridColor, drawBorder: false }
+                        },
+                        x: {
+                             ticks: {
+                                 font: chartDefaultFont,
+                                 color: chartTickColor,
+                                 maxRotation: 45,
+                                 minRotation: 30,
+                                 padding: 10
+                            },
+                             grid: { display: false, drawBorder: false }
+                        }
+                    },
+                     plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: chartTickColor,
+                                font: chartDefaultFont,
+                                boxWidth: 15,
+                                padding: 20
+                            }
+                        },
+                        tooltip: chartTooltipOptions, // Use common tooltip options
+                        title: {
+                            display: true,
+                            text: 'Avg. Monthly PMPM by Key Service Type',
+                            font: { size: 16, weight: '600', family: "'Inter', sans-serif" },
+                            padding: { top: 5, bottom: 20 },
+                            color: '#ffffff'
+                         }
+                    },
+                    interaction: { mode: 'index', intersect: false },
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
