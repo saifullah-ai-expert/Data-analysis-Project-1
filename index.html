@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKYGEN EBM Analyst Task - Enhanced Report</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Base Styles & Variables */
+        :root {
+            --primary-color: #4ecdc4; /* Teal */
+            --secondary-color: #ff6b6b; /* Coral */
+            --dark-blue: #0056b3; /* SKYGEN-like Blue */
+            --text-color: #333;
+            --bg-color: #f0f4f8; /* Lighter background */
+            --card-bg: rgba(255, 255, 255, 0.9);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.7; /* Increased slightly */
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden; /* Prevent horizontal scroll from particles */
+        }
+
+        /* Particle Background */
+        #particle-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Behind content */
+            overflow: hidden;
+            pointer-events: none; /* Allow clicks through */
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(78, 205, 196, 0.2); /* Semi-transparent teal */
+            border-radius: 50%;
+            animation: drift linear infinite;
+        }
+
+        @keyframes drift {
+            0% { transform: translateY(0) translateX(0); opacity: 0.5; }
+            50% { opacity: 0.2; }
+            100% { transform: translateY(-120vh) translateX(var(--drift-x, 50px)); opacity: 0.5; } /* Move up screen */
+        }
+
+
+        /* Container */
+        .container {
+            max-width: 960px;
+            margin: 30px auto;
+            padding: 20px;
+        }
+
+        /* Header Section */
+        header {
+            padding: 40px 20px;
+            text-align: center;
+            color: white;
+            border-radius: 15px;
+            margin-bottom: 40px;
+            position: relative; /* For stacking */
+            overflow: hidden; /* Keep gradient contained */
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            animation: fadeInHeader 1.2s ease-out forwards, floatHeader 4s ease-in-out infinite;
+            opacity: 0; /* Start hidden for fade-in */
+        }
+
+        @keyframes fadeInHeader {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatHeader {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+            100% { transform: translateY(0px); }
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            font-weight: 700;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.2);
+        }
+        header p {
+            font-size: 1.1em;
+            margin-top: 5px;
+            font-weight: 300;
+        }
+
+        /* Typography & Scroll Animations */
+        h2 {
+            color: var(--dark-blue);
+            font-weight: 600;
+            margin-bottom: 15px;
+            margin-top: 30px;
+            border-bottom: 2px solid rgba(78, 205, 196, 0.3); /* Subtle border */
+            padding-bottom: 8px;
+        }
+        h3 {
+            color: var(--primary-color);
+            font-weight: 600;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .fade-in-section {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .fade-in-section.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Section/Content Blocks Styling */
+        .task-section, #introduction, #recommendations {
+            background: var(--card-bg);
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); /* Softer shadow */
+            /* Scroll animation applied via JS */
+        }
+
+        .objective {
+            font-style: italic;
+            color: #555;
+            background-color: rgba(78, 205, 196, 0.1); /* Lighter teal */
+            padding: 15px;
+            border-left: 5px solid var(--primary-color);
+            margin: 15px 0;
+            border-radius: 5px;
+        }
+
+        .findings ul, .recommendations ul {
+            list-style-position: outside;
+            padding-left: 20px;
+        }
+         .findings li, .recommendations li {
+            margin-bottom: 10px;
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            margin: 25px auto;
+            width: 100%;
+            max-width: 700px; /* Limit chart width */
+            padding: 20px;
+            background-color: #fff;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        /* Ensure canvas respects container */
+         .chart-container canvas {
+            max-width: 100%;
+            height: auto; /* Maintain aspect ratio */
+            min-height: 300px; /* Ensure minimum height */
+         }
+
+        .key-takeaway {
+            font-weight: 600;
+            background-color: rgba(255, 107, 107, 0.1); /* Lighter coral */
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            color: #c53030; /* Darker red */
+        }
+
+        /* Button Styling */
+        .btn-container {
+             text-align: center;
+             margin-top: 20px;
+        }
+        .styled-button {
+            display: inline-block;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            background: linear-gradient(45deg, var(--primary-color), #45b7af);
+            color: white;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+            text-decoration: none;
+            box-shadow: 0 4px 10px rgba(78, 205, 196, 0.3);
+            margin: 5px;
+        }
+
+        .styled-button:hover {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 8px 20px rgba(78, 205, 196, 0.4);
+        }
+
+         .styled-button:active {
+            transform: scale(0.98);
+            box-shadow: 0 2px 5px rgba(78, 205, 196, 0.2);
+        }
+
+
+        /* Footer */
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #777;
+            font-size: 0.9em;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .container {
+                margin: 15px;
+                padding: 15px;
+                width: auto;
+            }
+            header h1 {
+                font-size: 2em;
+            }
+             header p {
+                font-size: 1em;
+            }
+            .task-section, #introduction, #recommendations {
+                padding: 20px;
+            }
+             h2 {
+                font-size: 1.5em;
+            }
+            /* Optional: Adjust chart heights on mobile if needed */
+             .chart-container canvas {
+                 min-height: 250px;
+             }
+        }
+         @media (max-width: 480px) {
+             header h1 {
+                font-size: 1.8em;
+             }
+              body {
+                line-height: 1.6; /* Slightly less spacing on very small screens */
+              }
+               .styled-button {
+                padding: 10px 20px;
+                font-size: 0.9em;
+               }
+         }
+
+    </style>
+</head>
+<body>
+    <!-- Particle Background Container -->
+    <div id="particle-container"></div>
+
+    <div class="container">
+        <header>
+            <h1>Dental Claims Data Analysis Report</h1>
+            <p>Analysis for SKYGEN EBM Analyst Evaluation</p>
+        </header>
+
+        <section id="introduction" class="fade-in-section">
+            <h2>Introduction & Executive Summary</h2>
+            <p>Welcome to the analysis of SKYGEN's sample dental claims data. This report explores cost trends, identifies key drivers behind these trends, and outlines a strategy for network cost management. Our goal is to transform raw data into actionable business insights.</p>
+            <p><strong>Key Conclusion:</strong> We observed a notable increase in dental costs per member from 2023 to 2024. This rise is primarily linked to increased costs in essential service areas like Restorative, Preventive, and Diagnostic care. Additionally, our analysis provides a method to pinpoint specific providers whose costs significantly exceed their peers, offering targeted opportunities for network optimization.</p>
+            <!-- Placeholder Button Demo -->
+            <div class="btn-container">
+                <a href="#task1" class="styled-button">View Cost Trends</a>
+                <a href="#recommendations" class="styled-button">See Recommendations</a>
+            </div>
+        </section>
+
+        <section id="task1" class="task-section fade-in-section">
+            <h2>Task 1: Overall Monthly Cost Trends</h2>
+            <div class="objective">
+                <strong>Objective:</strong> To track and visualize the month-over-month cost per member (PMPM) from January 2023 through December 2024, identifying overall trends.
+            </div>
+            <div class="findings">
+                <h3>Findings: What's Happening with Costs?</h3>
+                <p>The analysis clearly shows that the average cost for each member per month (PMPM) has been climbing.</p>
+                <ul>
+                    <li>Costs per member were significantly higher in 2024 (average $19.17) compared to 2023 (average $15.93).</li>
+                    <li>While there are natural ups and downs each month, the overall direction is upwards.</li>
+                    <li>Costs often peaked later in the year and dipped slightly in December for both years.</li>
+                </ul>
+            </div>
+            <h3>Visualization: Monthly Cost Per Member (PMPM) Trend</h3>
+            <div class="chart-container">
+                <canvas id="pmpmTrendChart"></canvas>
+            </div>
+             <p class="key-takeaway"><strong>Key Takeaway:</strong> The cost per member is definitely increasing year-over-year. We need to understand what's driving this.</p>
+        </section>
+
+        <section id="task2" class="task-section fade-in-section">
+            <h2>Task 2: Understanding *Why* Costs Increased</h2>
+            <div class="objective">
+                <strong>Objective:</strong> To use detailed dental service data (like cleanings, fillings, x-rays) to figure out which types of services are causing the overall cost increase identified in Task 1.
+            </div>
+            <div class="findings">
+                <h3>Findings: Which Services Cost More?</h3>
+                 <p>The cost increase isn't isolated to one rare procedure; it's happening across common, everyday dental services:</p>
+                <ul>
+                    <li><strong>Restorative Care</strong> (fillings, crowns) saw the biggest jump in cost per member.</li>
+                    <li><strong>Preventive Care</strong> (cleanings, check-ups) was the second-largest contributor to the increase.</li>
+                    <li><strong>Diagnostic Services</strong> (like X-rays) also added significantly to the rising costs.</li>
+                    <li>Increases were also seen in areas like Oral Surgery and Orthodontics, but these core services had the largest impact.</li>
+                 </ul>
+                 <p>This means members are either using these common services more often, the cost of each service has gone up, or a mix of both.</p>
+            </div>
+            <h3>Visualization: Average PMPM Increase by Key Service Type (2023 vs 2024)</h3>
+             <div class="chart-container">
+                <canvas id="servicePMPMChart"></canvas>
+            </div>
+             <p class="key-takeaway"><strong>Key Takeaway:</strong> Increases in the cost of common dental work (Restorative, Preventive, Diagnostic) are the primary drivers behind the overall rise in cost per member.</p>
+        </section>
+
+        <section id="task3" class="task-section fade-in-section">
+            <h2>Task 3: Identifying Potentially High-Cost Providers</h2>
+            <div class="objective">
+                <strong>Objective:</strong> To develop a fair method for spotting providers who might be contributing more significantly to network costs compared to their peers.
+            </div>
+            <div class="findings">
+                <h3>Strategy: Finding the Outliers Fairly</h3>
+                <p>Comparing costs directly between, say, a General Dentist and an Oral Surgeon isn't useful. Our strategy focuses on comparing apples to apples:</p>
+                <ol>
+                    <li><strong>Calculate Cost per Patient:</strong> For each provider, we find the average total cost spent per unique patient they treated. This is our main comparison point.</li>
+                    <li><strong>Group by Specialty:</strong> We group providers by their specialty (General Dentistry, Orthodontics, etc.).</li>
+                    <li><strong>Find the Average:</strong> We calculate the average Cost per Patient for each specialty group.</li>
+                    <li><strong>Spot the Difference:</strong> We identify providers whose Cost per Patient is significantly higher than the average for *their specific specialty*. We also look at their cost per service and services per patient to understand *why* they might be higher (e.g., more services vs. more expensive services).</li>
+                </ol>
+                <h3>Findings & Implications:</h3>
+                <p>This method successfully identifies providers whose cost patterns differ significantly from their peers. While a full analysis requires processing all provider data, illustrative examples show providers in various specialties (General Dentistry, Oral Surgery, Pediatrics) whose cost per patient stands out. These are "providers of interest" for further review.</p>
+             </div>
+             <p class="key-takeaway"><strong>Key Takeaway:</strong> By comparing providers within the same specialty, we can effectively identify those whose cost patterns warrant a closer look, helping focus network management efforts.</p>
+        </section>
+
+         <section id="recommendations" class="fade-in-section">
+            <h2>Conclusions & Recommended Next Steps</h2>
+            <p>Our analysis confirms a rising trend in dental costs per member, driven largely by increases in core service categories. We've also established a method to identify providers whose costs deviate significantly from their peers.</p>
+            <p>To effectively manage network costs and ensure value, we recommend:</p>
+             <ul class="recommendations">
+                <li><strong>Investigate Service Cost Drivers:</strong> Dig deeper into *why* Restorative, Preventive, and Diagnostic costs are up. Is it price, volume, or complexity?</li>
+                <li><strong>Review Flagged Providers:</strong> Initiate conversations with providers identified as high-cost relative to their specialty peers to understand their practice patterns and case complexity.</li>
+                <li><strong>Monitor Service Volume:</strong> Keep an eye on the number of services per patient, especially for flagged providers, to identify potential over-utilization.</li>
+                <li><strong>Refine Benchmarks:</strong> Continuously update specialty cost averages and consider adding factors like geography or patient risk for more precise comparisons.</li>
+                <li><strong>Strategic Review of High-Cost Procedures:</strong> Even if low volume, periodically analyze costs associated with expensive procedures like implants or complex surgeries.</li>
+            </ul>
+             <!-- Placeholder Button Demo -->
+             <div class="btn-container">
+                <a href="#" class="styled-button">Download Full Data (Placeholder)</a>
+             </div>
+        </section>
+
+        <footer>
+            <p>&copy; 2024 SKYGEN Analysis Exercise. Based on sample data.</p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Particle Generation ---
+        const particleContainer = document.getElementById('particle-container');
+        const particleCount = 30; // Adjust number of particles
+
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+
+            const size = Math.random() * 5 + 2; // Size between 2px and 7px
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+
+            // Random initial position
+            particle.style.top = `${Math.random() * 100}%`;
+            particle.style.left = `${Math.random() * 100}%`;
+
+            // Random animation duration and delay
+            const duration = Math.random() * 15 + 10; // Duration between 10s and 25s
+            const delay = Math.random() * 5; // Delay up to 5s
+            const driftX = (Math.random() - 0.5) * 200; // Random horizontal drift
+
+            particle.style.animationDuration = `${duration}s`;
+            particle.style.animationDelay = `-${delay}s`; // Use negative delay to start partway
+            particle.style.setProperty('--drift-x', `${driftX}px`);
+
+
+            particleContainer.appendChild(particle);
+        }
+
+
+        // --- Scroll Fade-In Animation ---
+        const observerOptions = {
+            root: null, // relative to the viewport
+            rootMargin: '0px',
+            threshold: 0.1 // Trigger when 10% of the element is visible
+        };
+
+        const observerCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                    observer.unobserve(entry.target); // Animate only once
+                }
+            });
+        };
+
+        const observer = new IntersectionObserver(observerCallback, observerOptions);
+
+        // Observe all elements with the fade-in-section class
+        document.querySelectorAll('.fade-in-section').forEach(section => {
+            observer.observe(section);
+        });
+
+
+        // --- Chart for Task 1: PMPM Trend ---
+        const ctxPMPM = document.getElementById('pmpmTrendChart')?.getContext('2d'); // Add null check
+         if (ctxPMPM) {
+            const pmpmMonths = [
+                "Jan 23", "Feb 23", "Mar 23", "Apr 23", "May 23", "Jun 23", "Jul 23", "Aug 23", "Sep 23", "Oct 23", "Nov 23", "Dec 23",
+                "Jan 24", "Feb 24", "Mar 24", "Apr 24", "May 24", "Jun 24", "Jul 24", "Aug 24", "Sep 24", "Oct 24", "Nov 24", "Dec 24"
+            ];
+            const pmpmValues = [
+                15.70, 15.02, 17.21, 15.00, 16.61, 15.76, 14.21, 17.53, 14.99, 17.47, 16.53, 15.08,
+                17.65, 17.60, 18.21, 19.30, 19.55, 18.24, 20.28, 21.35, 19.29, 22.01, 18.88, 17.70
+            ];
+
+            new Chart(ctxPMPM, {
+                type: 'line',
+                data: {
+                    labels: pmpmMonths,
+                    datasets: [{
+                        label: 'PMPM ($)',
+                        data: pmpmValues,
+                        borderColor: 'rgb(0, 94, 184)',
+                        backgroundColor: 'rgba(0, 94, 184, 0.1)',
+                        tension: 0.3, // Smoother line
+                        fill: true,
+                        pointBackgroundColor: 'rgb(0, 94, 184)',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true, // Let Chart.js manage aspect ratio
+                     aspectRatio: 2, // Adjust aspect ratio (width/height)
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: function(value) { return '$' + value.toFixed(2); },
+                                font: { size: 10 }
+                            },
+                             grid: {
+                                color: 'rgba(0,0,0,0.05)' // Lighter grid lines
+                            }
+                        },
+                         x: {
+                            ticks: {
+                                 maxRotation: 70,
+                                 minRotation: 45,
+                                 font: { size: 10 }
+                            },
+                             grid: {
+                                display: false // Hide vertical grid lines
+                            }
+                        }
+                    },
+                    plugins: {
+                         legend: {
+                             display: false // Hide legend if only one dataset
+                         },
+                        tooltip: {
+                             backgroundColor: 'rgba(0,0,0,0.7)',
+                             titleFont: { size: 14 },
+                             bodyFont: { size: 12 },
+                             padding: 10,
+                             cornerRadius: 4,
+                            callbacks: {
+                                label: function(context) {
+                                     return ` PMPM: ${new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y)}`;
+                                }
+                            }
+                        },
+                         title: {
+                            display: true,
+                            text: 'Monthly Cost Per Member (PMPM)',
+                            font: { size: 16, weight: '600' },
+                            padding: { top: 5, bottom: 15 },
+                            color: '#333'
+                         }
+                    },
+                     interaction: { // Enhance hover effects
+                        mode: 'index',
+                        intersect: false,
+                    },
+                }
+            });
+        } else {
+            console.error("Canvas element for PMPM chart not found");
+        }
+
+
+        // --- Chart for Task 2: Service Category PMPM Comparison ---
+        const ctxService = document.getElementById('servicePMPMChart')?.getContext('2d'); // Add null check
+         if (ctxService) {
+            const serviceCategories = [
+                'Restorative', 'Preventive', 'Diagnostic', 'Oral Surgery',
+                'Orthodontics', 'Adjunctive Gen.', 'Endodontics', 'Undefined'
+            ];
+            const servicePMPM2023 = [4.53, 2.59, 2.49, 1.63, 1.21, 0.68, 1.38, 0.38];
+            const servicePMPM2024 = [5.28, 3.24, 2.94, 1.98, 1.41, 0.83, 1.51, 0.51];
+
+            new Chart(ctxService, {
+                type: 'bar',
+                data: {
+                    labels: serviceCategories,
+                    datasets: [
+                        {
+                            label: '2023 Avg PMPM',
+                            data: servicePMPM2023,
+                            backgroundColor: 'rgba(78, 205, 196, 0.7)', // Teal
+                            borderColor: 'rgba(78, 205, 196, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4 // Rounded bars
+                        },
+                        {
+                            label: '2024 Avg PMPM',
+                            data: servicePMPM2024,
+                             backgroundColor: 'rgba(255, 107, 107, 0.7)', // Coral
+                            borderColor: 'rgba(255, 107, 107, 1)',
+                            borderWidth: 1,
+                             borderRadius: 4 // Rounded bars
+                        }
+                    ]
+                },
+                options: {
+                     responsive: true,
+                     maintainAspectRatio: true,
+                      aspectRatio: 2,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return '$' + value.toFixed(2); },
+                                 font: { size: 10 }
+                            },
+                             grid: {
+                                color: 'rgba(0,0,0,0.05)'
+                            }
+                        },
+                        x: {
+                             ticks: {
+                                maxRotation: 45,
+                                minRotation: 30,
+                                 font: { size: 10 }
+                            },
+                             grid: {
+                                display: false
+                            }
+                        }
+                    },
+                     plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                             backgroundColor: 'rgba(0,0,0,0.7)',
+                             titleFont: { size: 14 },
+                             bodyFont: { size: 12 },
+                             padding: 10,
+                             cornerRadius: 4,
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) { label += ': '; }
+                                    if (context.parsed.y !== null) {
+                                         label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                }
+                            }
+                        },
+                         title: {
+                            display: true,
+                            text: 'Avg. Monthly Cost Per Member by Key Service Type',
+                             font: { size: 16, weight: '600' },
+                            padding: { top: 5, bottom: 15 },
+                             color: '#333'
+                         }
+                    }
+                }
+            });
+        } else {
+             console.error("Canvas element for Service PMPM chart not found");
+        }
+
+    </script>
+</body>
+</html>
